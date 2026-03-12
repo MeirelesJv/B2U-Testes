@@ -1,0 +1,265 @@
+import { test, expect } from "@playwright/test";
+import { config } from "../config";
+import { chromium } from "playwright";
+
+let tempoEspera = 3000;
+
+test("Teste de Venda", async ({ page }) => {
+  test.setTimeout(0);
+  //Acessa o site
+  await page.goto("http://localhost:" + config.porta);
+  await page.waitForLoadState("networkidle");
+
+  //Faz login no site
+  await page.getByPlaceholder("Usuário").fill(config.usuario);
+  await page.getByPlaceholder("senha").fill(config.senha);
+  await page.getByRole("button", { name: "FAZER LOGIN" }).click();
+  await page.waitForLoadState("networkidle");
+  await page.waitForTimeout(tempoEspera);
+
+  //Caso tenha o pop-up de tabela vencida
+  const popupTributo = page.getByTestId("closeModalTributoAproximado");
+
+  if (await popupTributo.isVisible()) {
+    await popupTributo.click();
+    await page.waitForLoadState("networkidle");
+  }
+
+  //Verifica se tem uma venda já aberta
+  const temVendaAberta = await page
+    .locator("#main-menu-venda-add p")
+    .getByText("Retomar Venda")
+    .nth(1)
+    .isVisible();
+  if (temVendaAberta) {
+    //Cancelando a venda pendente
+    //Abre ela
+    await page.locator('a[href="#/venda/add/"]').first().click();
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(tempoEspera);
+
+    //Abre o popUp de cancelar
+    await page
+      .locator('[ng-click="cancelPedido()"]')
+      .nth(1)
+      .click({ force: true });
+
+    //Preenchimento dos campos de cancelamento
+    await page.getByPlaceholder("Gerente").fill(config.usuario);
+    await page.getByPlaceholder("senha").fill(config.senha);
+    //Seleciona o primeiro motivo
+    let selectMotivo = page.locator("select#motivos");
+    await selectMotivo.selectOption({ index: 1 });
+    //Preenchimento do Motivo
+    await page
+      .getByPlaceholder("Motivo para autorização")
+      .fill("Teste de cancelamento");
+    //Confirmar
+    await page.getByRole("button", { name: "SIM, AUTORIZAR" }).click();
+    await page.waitForTimeout(tempoEspera);
+  } else {
+    //Abre uma nova venda
+    await page.locator('a[href="#/venda/add/"]').first().click();
+    await page.waitForLoadState("networkidle");
+  }
+
+  //Seleciona o vendedor
+  let select = page.locator("select#vendedor");
+  await select.selectOption({ index: 1 }); // seleciona o primeiro
+
+  //Verifica se o campo de cliente está preenchido
+  const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
+  if (await icone.isVisible()) {
+    console.log("ta com cliente");
+  } else {
+    await page.locator("#cliente").fill(config.cliente);
+    await page.waitForTimeout(1000);
+    await page.waitForSelector('[role="option"]', { state: "visible" });
+    await page.locator('[role="option"] a').first().click();
+    await page.waitForTimeout(500);
+  }
+
+  //Coloca o poduto
+  await page.locator("#codigo-barras").fill(config.codProdutoBarra);
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(tempoEspera);
+
+  //Pagamento
+  await page.locator('[ng-hide="isPreVenda() || caixaAberto()"]').click();
+  await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
+  await page.waitForTimeout(500);
+  //Seleciona forma de pagamento
+  await page.locator("label").getByText(config.formaPGTO).click();
+  await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
+  await page.waitForTimeout(1000);
+  //Confirmar pagamento
+  await page.locator('[ng-click="confirmarpagamentoTroco()"]').click();
+  await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
+  //Confirmar
+  await page.waitForTimeout(1000);
+  await page.locator('[ng-click="finishPedido(state.ImprimeDanfe)"]').click();
+  await page.waitForTimeout(tempoEspera);
+});
+
+test("Teste de Troca", async ({ page }) => {
+  test.setTimeout(0);
+  //Acessa o site
+  await page.goto("http://localhost:" + config.porta);
+  await page.waitForLoadState("networkidle");
+
+  //Faz login no site
+  await page.getByPlaceholder("Usuário").fill(config.usuario);
+  await page.getByPlaceholder("senha").fill(config.senha);
+  await page.getByRole("button", { name: "FAZER LOGIN" }).click();
+  await page.waitForLoadState("networkidle");
+  await page.waitForTimeout(tempoEspera);
+
+  //Caso tenha o pop-up de tabela vencida
+  const popupTributo = page.getByTestId("closeModalTributoAproximado");
+
+  if (await popupTributo.isVisible()) {
+    await popupTributo.click();
+    await page.waitForLoadState("networkidle");
+  }
+
+  //Verifica se tem uma venda já aberta
+  const temVendaAberta = await page
+    .locator("#main-menu-venda-add p")
+    .getByText("Retomar Venda")
+    .nth(1)
+    .isVisible();
+  if (temVendaAberta) {
+    //Cancelando a venda pendente
+    //Abre ela
+    await page.locator('a[href="#/venda/add/"]').first().click();
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(tempoEspera);
+
+    //Abre o popUp de cancelar
+    await page
+      .locator('[ng-click="cancelPedido()"]')
+      .nth(1)
+      .click({ force: true });
+
+    //Preenchimento dos campos de cancelamento
+    await page.getByPlaceholder("Gerente").fill(config.usuario);
+    await page.getByPlaceholder("senha").fill(config.senha);
+    //Seleciona o primeiro motivo
+    let selectMotivo = page.locator("select#motivos");
+    await selectMotivo.selectOption({ index: 1 });
+    //Preenchimento do Motivo
+    await page
+      .getByPlaceholder("Motivo para autorização")
+      .fill("Teste de cancelamento");
+    //Confirmar
+    await page.getByRole("button", { name: "SIM, AUTORIZAR" }).click();
+    await page.waitForTimeout(tempoEspera);
+  } else {
+    //Abre uma nova venda
+    await page.locator('a[href="#/venda/add/"]').first().click();
+    await page.waitForLoadState("networkidle");
+  }
+
+  //Seleciona o vendedor
+  let select = page.locator("select#vendedor");
+  await select.selectOption({ index: 1 }); // seleciona o primeiro
+
+  //Verifica se o campo de cliente está preenchido
+  const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
+  if (await icone.isVisible()) {
+    console.log("ta com cliente");
+  } else {
+    await page.locator("#cliente").fill(config.cliente);
+    await page.waitForTimeout(1000);
+    await page.waitForSelector('[role="option"]', { state: "visible" });
+    await page.locator('[role="option"] a').first().click();
+    await page.waitForTimeout(500);
+  }
+
+  //Coloca o poduto
+  await page.locator("#codigo-barras").fill(config.codProdutoBarra);
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(tempoEspera);
+
+  //Coloca produto da troca
+  await page.locator('[ng-click="toggleTroca()"]').nth(1).click();
+  await page.locator("#codigo-barras").fill(config.codProdutoBarra);
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(tempoEspera);
+
+  //Pagamento
+  await page.locator('[ng-hide="isPreVenda() || caixaAberto()"]').click();
+  await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
+  await page.waitForTimeout(500);
+  //Seleciona forma de pagamento
+  await page.locator("label").getByText(config.formaPGTO).click();
+  await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
+  await page.waitForTimeout(1000);
+  //Confirmar pagamento
+  await page.locator('[ng-click="confirmarpagamentoTroco()"]').click();
+  await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
+  //Confirmar
+  await page.waitForTimeout(1000);
+  await page.locator('[ng-click="finishPedido(state.ImprimeDanfe)"]').click();
+  await page.waitForTimeout(tempoEspera);
+});
+
+test("Teste de Cancelamento", async ({ page }) => {
+  //Acessa o site
+  await page.goto("http://localhost:" + config.porta);
+  await page.waitForLoadState("networkidle");
+
+  //Caso tenha o pop-up de tabela vencida
+  const popupTributo = page.getByTestId("closeModalTributoAproximado");
+
+  if (await popupTributo.isVisible()) {
+    await popupTributo.click();
+    await page.waitForLoadState("networkidle");
+  }
+
+  await page.locator("#main-menu-venda").click();
+  await page.waitForLoadState("networkidle");
+  await page.waitForSelector("table tbody tr", { state: "visible" });
+  console.log("foi");
+  await Promise.all([
+    page.waitForResponse(
+      (resp) => resp.url().includes("/pedido") && resp.status() === 200,
+    ),
+    page.locator("tbody tr").nth(0).locator("a").first().click(),
+  ]);
+});
+
+test("abrir pedido", async () => {
+  const context = await chromium.launchPersistentContext(
+    "C:/Users/meire/AppData/Local/Google/Chrome/User Data",
+    {
+      headless: false,
+      channel: "chrome",
+      args: ["--profile-directory=Default"],
+    },
+  );
+
+  const page = await context.newPage();
+  await page.goto("http://localhost:90/");
+  await page.waitForLoadState("networkidle");
+
+  const popupTributo = page.getByTestId("closeModalTributoAproximado");
+
+  if (await popupTributo.isVisible()) {
+    await popupTributo.click();
+    await page.waitForLoadState("networkidle");
+  }
+
+  await page.locator("#main-menu-venda").click();
+  await page.waitForLoadState("networkidle");
+  await page.waitForSelector("table tbody tr", { state: "visible" });
+  console.log("foi");
+  await Promise.all([
+    page.waitForResponse(
+      (resp) => resp.url().includes("/pedido") && resp.status() === 200,
+    ),
+    page.locator("tbody tr").nth(0).locator("a").first().click(),
+  ]);
+
+  await context.close();
+});
