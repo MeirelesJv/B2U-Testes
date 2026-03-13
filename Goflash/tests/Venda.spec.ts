@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { config } from "../config";
 import { chromium } from "playwright";
+import { execSync } from "child_process";
 
 let tempoEspera = 3000;
 
@@ -89,7 +90,7 @@ test("Teste de Venda", async ({ page }) => {
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
   await page.waitForTimeout(500);
   //Seleciona forma de pagamento
-  await page.locator("label").getByText(config.formaPGTO).click();
+  await page.locator("label").getByText("DINHEIRO").click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
   await page.waitForTimeout(1000);
   //Confirmar pagamento
@@ -192,7 +193,7 @@ test("Teste de Troca", async ({ page }) => {
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
   await page.waitForTimeout(500);
   //Seleciona forma de pagamento
-  await page.locator("label").getByText(config.formaPGTO).click();
+  await page.locator("label").getByText("DINHEIRO").click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
   await page.waitForTimeout(1000);
   //Confirmar pagamento
@@ -227,39 +228,4 @@ test("Teste de Cancelamento", async ({ page }) => {
     ),
     page.locator("tbody tr").nth(0).locator("a").first().click(),
   ]);
-});
-
-test("abrir pedido", async () => {
-  const context = await chromium.launchPersistentContext(
-    "C:/Users/meire/AppData/Local/Google/Chrome/User Data",
-    {
-      headless: false,
-      channel: "chrome",
-      args: ["--profile-directory=Default"],
-    },
-  );
-
-  const page = await context.newPage();
-  await page.goto("http://localhost:90/");
-  await page.waitForLoadState("networkidle");
-
-  const popupTributo = page.getByTestId("closeModalTributoAproximado");
-
-  if (await popupTributo.isVisible()) {
-    await popupTributo.click();
-    await page.waitForLoadState("networkidle");
-  }
-
-  await page.locator("#main-menu-venda").click();
-  await page.waitForLoadState("networkidle");
-  await page.waitForSelector("table tbody tr", { state: "visible" });
-  console.log("foi");
-  await Promise.all([
-    page.waitForResponse(
-      (resp) => resp.url().includes("/pedido") && resp.status() === 200,
-    ),
-    page.locator("tbody tr").nth(0).locator("a").first().click(),
-  ]);
-
-  await context.close();
 });
