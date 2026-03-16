@@ -1,6 +1,5 @@
 import { test, expect } from "@playwright/test";
 import { config } from "../config";
-import { error } from "node:console";
 
 let tempoEspera = 3000;
 
@@ -40,13 +39,16 @@ test("Teste de Venda", async ({ page }) => {
     //Preenchimento dos campos de cancelamento
     await page.getByPlaceholder("Gerente").fill(config.usuario);
     await page.getByPlaceholder("senha").fill(config.senha);
+
     //Seleciona o primeiro motivo
     let selectMotivo = page.locator("select#motivos");
     await selectMotivo.selectOption({ index: 1 });
+
     //Preenchimento do Motivo
     await page
       .getByPlaceholder("Motivo para autorização")
       .fill("Teste de cancelamento");
+
     //Confirmar
     await page.getByRole("button", { name: "SIM, AUTORIZAR" }).click();
     await page.waitForTimeout(tempoEspera);
@@ -229,7 +231,7 @@ test("Teste de Cancelamento", async ({ page }) => {
     .nth(0)
     .getByText("Cancelado")
     .isVisible();
-  console.log(ticket);
+
   if (ticket) {
     throw new Error("A primeira nota nao pode ser cancelada ou antiga");
   }
