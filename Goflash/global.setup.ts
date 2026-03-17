@@ -11,8 +11,8 @@ async function globalSetup() {
   await page.goto("http://localhost:" + config.porta);
   await page.waitForLoadState("networkidle");
 
-  await page.getByPlaceholder("Usuário").fill(config.usuario);
-  await page.getByPlaceholder("senha").fill(config.senha);
+  await page.getByPlaceholder("Usuário").fill(config.usuarioGoflash);
+  await page.getByPlaceholder("senha").fill(config.senhaGoflash);
   await page.getByRole("button", { name: "FAZER LOGIN" }).click();
   await page.waitForLoadState("networkidle");
 

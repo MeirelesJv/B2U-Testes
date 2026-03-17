@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { config } from "../config";
+import { config } from "../../config";
 import {
   buscarCadastroCliente,
   deletarCadastroCliente,
-} from "../database/queries";
-import { closeConnection } from "../database/connection";
+} from "../../database/queries";
+import { closeConnection } from "../../database/connection";
 
 test.afterAll(async () => {
   await closeConnection(); // fecha a conexão ao terminar os testes
