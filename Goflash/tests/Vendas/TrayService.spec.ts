@@ -1,6 +1,9 @@
 import { test, expect } from "@playwright/test";
 import { config } from "../../config";
-import { buscarCodigoDeBarras } from "../../database/queries";
+import {
+  buscarCodigoDeBarras,
+  permiteVendaSemCliente,
+} from "../../database/queries";
 import { closeConnection } from "../../database/connection";
 
 //Testes com emissão pelo Tray Service
@@ -95,16 +98,25 @@ test("Teste de Venda", async ({ page }) => {
   let select = page.locator("select#vendedor");
   await select.selectOption({ index: 1 }); // seleciona o primeiro
 
-  //Verifica se o campo de cliente está preenchido
-  await page.waitForTimeout(2000);
-  const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
-  if (await icone.isVisible()) {
-  } else {
-    await page.locator("#cliente").fill(config.cliente);
-    await page.waitForTimeout(2000);
-    await page.waitForSelector('[role="option"]', { state: "visible" });
-    await page.locator('[role="option"] a').first().click();
+  //Verifica se o parametro que permite venda sem cliente está ativo, se estiver ele mantem e faz a venda sem cliente
+  let vendaSemCliente = await permiteVendaSemCliente();
+  console.log(vendaSemCliente.VALOR_ATUAL);
+  if (vendaSemCliente.VALOR_ATUAL === ".T.") {
+    //Parametro ativo
     await page.waitForTimeout(500);
+  } else {
+    //Parametro desativado
+    //Verifica se o campo de cliente está preenchido
+    await page.waitForTimeout(2000);
+    const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
+    if (await icone.isVisible()) {
+    } else {
+      await page.locator("#cliente").fill(config.cliente);
+      await page.waitForTimeout(2000);
+      await page.waitForSelector('[role="option"]', { state: "visible" });
+      await page.locator('[role="option"] a').first().click();
+      await page.waitForTimeout(500);
+    }
   }
 
   //Coloca o poduto
@@ -224,16 +236,25 @@ test("Teste de Troca", async ({ page }) => {
   let select = page.locator("select#vendedor");
   await select.selectOption({ index: 1 }); // seleciona o primeiro
 
-  //Verifica se o campo de cliente está preenchido
-  const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
-  if (await icone.isVisible()) {
-    console.log("ta com cliente");
-  } else {
-    await page.locator("#cliente").fill(config.cliente);
-    await page.waitForTimeout(1000);
-    await page.waitForSelector('[role="option"]', { state: "visible" });
-    await page.locator('[role="option"] a').first().click();
+  //Verifica se o parametro que permite venda sem cliente está ativo, se estiver ele mantem e faz a venda sem cliente
+  let vendaSemCliente = await permiteVendaSemCliente();
+  console.log(vendaSemCliente.VALOR_ATUAL);
+  if (vendaSemCliente.VALOR_ATUAL === ".T.") {
+    //Parametro ativo
     await page.waitForTimeout(500);
+  } else {
+    //Parametro desativado
+    //Verifica se o campo de cliente está preenchido
+    await page.waitForTimeout(2000);
+    const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
+    if (await icone.isVisible()) {
+    } else {
+      await page.locator("#cliente").fill(config.cliente);
+      await page.waitForTimeout(2000);
+      await page.waitForSelector('[role="option"]', { state: "visible" });
+      await page.locator('[role="option"] a').first().click();
+      await page.waitForTimeout(500);
+    }
   }
 
   //Coloca o poduto
@@ -372,5 +393,3 @@ test("Teste de Cancelamento", async ({ page }) => {
     timeout: 12000,
   });
 });
-
-test("testar a conexão", async ({ page }) => {});

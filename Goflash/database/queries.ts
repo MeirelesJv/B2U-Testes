@@ -27,3 +27,13 @@ export async function deletarCadastroCliente(cpf: string) {
       "delete from CLIENTES_VAREJO where CODIGO_CLIENTE = @CODIGO_CLIENTE",
     );
 }
+
+export async function permiteVendaSemCliente() {
+  const pool = await getConnection();
+  const result = await pool
+    .request()
+    .query(
+      "select * from PARAMETROS where PARAMETRO = 'PermiteVendaSemCliente'",
+    );
+  return result.recordset[0];
+}
