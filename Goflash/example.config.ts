@@ -3,7 +3,11 @@ export const config = {
   porta: "",
   usuario: "",
   senha: "",
-  codProdutoBarra: "",
+  codProdutoBarra: "", //Apenas caso o produto que a query pegue, não tiver limite.
   cliente: "",
-  cpf: "",
+  //Banco
+  user: "",
+  password: "",
+  database: "",
+  server: "",
 };
