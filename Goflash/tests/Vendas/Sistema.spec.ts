@@ -3,6 +3,7 @@ import { config } from "../../config";
 import {
   buscarCodigoDeBarras,
   permiteVendaSemCliente,
+  updateEstoqueCodigoDeBarras,
 } from "../../database/queries";
 import { closeConnection } from "../../database/connection";
 
@@ -15,7 +16,7 @@ test.afterAll(async () => {
 });
 
 test("Teste de Venda", async ({ page }) => {
-  test.setTimeout(0);
+  test.setTimeout(30000);
 
   await page.goto("http://localhost:" + config.porta);
   await page.waitForLoadState("networkidle");
@@ -121,30 +122,56 @@ test("Teste de Venda", async ({ page }) => {
     }
   }
 
-  //Coloca o poduto
+  //Coloca o produto
+  let codProduto = await buscarCodigoDeBarras();
+  let popUpProdutoSemEstoque = page.getByLabel(
+    "Produto sem quantidade disponível para venda!",
+  );
   if (!config.codProdutoBarra) {
-    const codProduto = await buscarCodigoDeBarras();
     await page.locator("#codigo-barras").fill(codProduto.CODIGO_BARRA);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(2000);
+
+    //Verifica se o PopUp de produto sem estoque aparece
+    if (await popUpProdutoSemEstoque.isVisible()) {
+      await updateEstoqueCodigoDeBarras(
+        codProduto.PRODUTO,
+        codProduto.COR_PRODUTO,
+        codProduto.CODIGO_FILIAL,
+      );
+      await page.waitForTimeout(1000);
+      await page.locator("#codigo-barras").fill(codProduto.CODIGO_BARRA);
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(1000);
+    }
   } else {
     await page.locator("#codigo-barras").fill(config.codProdutoBarra);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(2000);
+
+    //Verifica se o PopUp de produto sem estoque aparece
+    if (await popUpProdutoSemEstoque.isVisible()) {
+      throw new Error("Produto escolhido sem estoque");
+    }
   }
-  await page.keyboard.press("Enter");
-  await page.waitForTimeout(tempoEspera);
 
   //Pagamento
   await page.waitForSelector('a p:has-text("Pagamento")', { state: "visible" });
   await page.locator('[ng-hide="isPreVenda() || caixaAberto()"]').click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
-  await page.waitForTimeout(500);
+  await page.waitForLoadState("networkidle");
+  await page.waitForTimeout(tempoEspera);
 
   //Seleciona forma de pagamento
-  await page.locator("label").getByText("DINHEIRO").click();
+  await page.getByRole("radio", { name: "DINHEIRO" }).click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
+  await page.waitForLoadState("networkidle");
   await page.waitForTimeout(1000);
 
   //Confirmar pagamento
   await page.locator('[ng-click="confirmarpagamentoTroco()"]').click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
+  await page.waitForLoadState("networkidle");
 
   //Confirmar
   await page.waitForTimeout(1000);
@@ -156,11 +183,13 @@ test("Teste de Venda", async ({ page }) => {
   });
 });
 
-test("Teste de Troca", async ({ page }) => {
-  test.setTimeout(0);
+test("Teste de Cancelamento", async ({ page }) => {
+  test.setTimeout(50000);
+
   await page.goto("http://localhost:" + config.porta);
   await page.waitForLoadState("networkidle");
-  //Verificar se o parametro de envio pelo Tray Service está ativo
+
+  //Verificar se o parametro de venda pelo sistema está ativo
   await page.goto("http://localhost:" + config.porta + "/#/config");
   await page.waitForLoadState("networkidle");
 
@@ -218,13 +247,16 @@ test("Teste de Troca", async ({ page }) => {
     //Preenchimento dos campos de cancelamento
     await page.getByPlaceholder("Gerente").fill(config.usuarioGoflash);
     await page.getByPlaceholder("senha").fill(config.senhaGoflash);
+
     //Seleciona o primeiro motivo
     let selectMotivo = page.locator("select#motivos");
     await selectMotivo.selectOption({ index: 1 });
+
     //Preenchimento do Motivo
     await page
       .getByPlaceholder("Motivo para autorização")
       .fill("Teste de cancelamento");
+
     //Confirmar
     await page.getByRole("button", { name: "SIM, AUTORIZAR" }).click();
     await page.waitForTimeout(tempoEspera);
@@ -232,7 +264,6 @@ test("Teste de Troca", async ({ page }) => {
     //Abre uma nova venda
     await page.locator('a[href="#/venda/add/"]').first().click();
     await page.waitForLoadState("networkidle");
-    await page.waitForTimeout(tempoEspera);
   }
 
   //Seleciona o vendedor
@@ -259,39 +290,48 @@ test("Teste de Troca", async ({ page }) => {
     }
   }
 
-  //Coloca o poduto
-  const codProduto = await buscarCodigoDeBarras();
+  //Coloca o produto
+  let codProduto = await buscarCodigoDeBarras();
+  let popUpProdutoSemEstoque = page.getByLabel(
+    "Produto sem quantidade disponível para venda!",
+  );
   if (!config.codProdutoBarra) {
-    //Primeiro produto
     await page.locator("#codigo-barras").fill(codProduto.CODIGO_BARRA);
     await page.keyboard.press("Enter");
-    await page.waitForTimeout(tempoEspera);
+    await page.waitForTimeout(2000);
 
-    //Produto troca
-    await page.locator('[ng-click="toggleTroca()"]').nth(1).click();
-    await page.locator("#codigo-barras").fill(codProduto.CODIGO_BARRA);
-    await page.keyboard.press("Enter");
-    await page.waitForTimeout(tempoEspera);
+    //Verifica se o PopUp de produto sem estoque aparece
+    if (await popUpProdutoSemEstoque.isVisible()) {
+      await updateEstoqueCodigoDeBarras(
+        codProduto.PRODUTO,
+        codProduto.COR_PRODUTO,
+        codProduto.CODIGO_FILIAL,
+      );
+      await page.waitForTimeout(1000);
+      await page.locator("#codigo-barras").fill(codProduto.CODIGO_BARRA);
+      await page.keyboard.press("Enter");
+      await page.waitForTimeout(1000);
+    }
   } else {
-    //Primeiro produto
     await page.locator("#codigo-barras").fill(config.codProdutoBarra);
     await page.keyboard.press("Enter");
-    await page.waitForTimeout(tempoEspera);
+    await page.waitForTimeout(2000);
 
-    //Produto troca
-    await page.locator('[ng-click="toggleTroca()"]').nth(1).click();
-    await page.locator("#codigo-barras").fill(config.codProdutoBarra);
-    await page.keyboard.press("Enter");
-    await page.waitForTimeout(tempoEspera);
+    //Verifica se o PopUp de produto sem estoque aparece
+    if (await popUpProdutoSemEstoque.isVisible()) {
+      throw new Error("Produto escolhido sem estoque");
+    }
   }
 
   //Pagamento
+  await page.waitForSelector('a p:has-text("Pagamento")', { state: "visible" });
   await page.locator('[ng-hide="isPreVenda() || caixaAberto()"]').click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
-  await page.waitForTimeout(500);
+  await page.waitForLoadState("networkidle");
+  await page.waitForTimeout(tempoEspera);
 
   //Seleciona forma de pagamento
-  await page.locator("label").getByText("DINHEIRO").click();
+  await page.getByRole("radio", { name: "DINHEIRO" }).click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
   await page.waitForTimeout(1000);
 
@@ -307,48 +347,10 @@ test("Teste de Troca", async ({ page }) => {
   await expect(page.getByText("Ticket gerado com êxito")).toBeVisible({
     timeout: 120000,
   });
-});
-
-test("Teste de Cancelamento", async ({ page }) => {
-  test.setTimeout(0);
-  await page.goto("http://localhost:" + config.porta);
-  await page.waitForLoadState("networkidle");
-
-  //Verificar se o parametro de envio pelo Tray Service está ativo
-  await page.goto("http://localhost:" + config.porta + "/#/config");
-  await page.waitForLoadState("networkidle");
-
-  const checkedEnvioNfceTela = await page
-    .getByRole("checkbox", {
-      name: "Realiza envio de nfce diretamente pelo sistema sem uso do tray service",
-    })
-    .isChecked();
-
-  if (checkedEnvioNfceTela) {
-    //Está marcado
-  } else {
-    //Não está marcado
-    await page
-      .getByRole("checkbox", {
-        name: "Realiza envio de nfce diretamente pelo sistema sem uso do tray service",
-      })
-      .click();
-
-    await page.getByRole("button", { name: "Salvar" }).click();
-    await page.waitForTimeout(tempoEspera);
-  }
 
   //Acessa o site
   await page.goto("http://localhost:" + config.porta);
   await page.waitForLoadState("networkidle");
-
-  //Caso tenha o pop-up de tabela vencida
-  const popupTributo = page.getByTestId("closeModalTributoAproximado");
-
-  if (await popupTributo.isVisible()) {
-    await popupTributo.click();
-    await page.waitForLoadState("networkidle");
-  }
 
   await page.locator("#main-menu-venda").click();
   await page.waitForLoadState("networkidle");
@@ -397,5 +399,3 @@ test("Teste de Cancelamento", async ({ page }) => {
     timeout: 12000,
   });
 });
-
-test("testar a conexão", async ({ page }) => {});

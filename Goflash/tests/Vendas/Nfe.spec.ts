@@ -7,15 +7,14 @@ import {
 } from "../../database/queries";
 import { closeConnection } from "../../database/connection";
 
-//Testes com emissão pelo Tray Service
-
-let tempoEspera = 3000;
-
 test.afterAll(async () => {
   await closeConnection(); // fecha a conexão ao terminar os testes
 });
+//Emissão de NF-e
 
-test("Teste de Venda", async ({ page }) => {
+let tempoEspera = 3000;
+
+test("Emissão de uma venda NF-e", async ({ page }) => {
   test.setTimeout(30000);
 
   await page.goto("http://localhost:" + config.porta);
@@ -173,6 +172,10 @@ test("Teste de Venda", async ({ page }) => {
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
   await page.waitForLoadState("networkidle");
 
+  //Escolhe pela NF-e
+  await page.getByTestId("emitirNFeVenda").click();
+  await page.getByTestId("adicionaCPFNota").click();
+
   //Confirmar
   await page.waitForTimeout(1000);
   await page.locator('[ng-click="finishPedido(state.ImprimeDanfe)"]').click();
@@ -183,7 +186,7 @@ test("Teste de Venda", async ({ page }) => {
   });
 });
 
-test("Teste de Cancelamento", async ({ page }) => {
+test("Teste de Cancelamento NF-e", async ({ page }) => {
   test.setTimeout(50000);
 
   await page.goto("http://localhost:" + config.porta);
@@ -339,6 +342,10 @@ test("Teste de Cancelamento", async ({ page }) => {
   await page.locator('[ng-click="confirmarpagamentoTroco()"]').click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
 
+  //Escolhe pela NF-e
+  await page.getByTestId("emitirNFeVenda").click();
+  await page.getByTestId("adicionaCPFNota").click();
+
   //Confirmar
   await page.waitForTimeout(1000);
   await page.locator('[ng-click="finishPedido(state.ImprimeDanfe)"]').click();
@@ -401,7 +408,7 @@ test("Teste de Cancelamento", async ({ page }) => {
 });
 
 //Atualmene mesmo com o parametro, é necessario o uso do Tray Service para gerar a nota 55
-test("Teste de Troca", async ({ page }) => {
+test("Teste de Troca NF-e", async ({ page }) => {
   test.setTimeout(40000);
 
   await page.goto("http://localhost:" + config.porta);
@@ -568,6 +575,10 @@ test("Teste de Troca", async ({ page }) => {
   await page.locator('[ng-click="confirmarpagamentoTroco()"]').click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
 
+  //Escolhe pela NF-e
+  await page.getByTestId("emitirNFeVenda").click();
+  await page.getByTestId("adicionaCPFNota").click();
+
   //Confirmar
   await page.waitForTimeout(1000);
   await page.locator('[ng-click="finishPedido(state.ImprimeDanfe)"]').click();
@@ -578,7 +589,7 @@ test("Teste de Troca", async ({ page }) => {
   });
 });
 
-test("Teste de Cancelamento Troca", async ({ page }) => {
+test("Teste de Cancelamento Troca NF-e", async ({ page }) => {
   test.setTimeout(60000);
 
   await page.goto("http://localhost:" + config.porta);
@@ -744,6 +755,10 @@ test("Teste de Cancelamento Troca", async ({ page }) => {
   //Confirmar pagamento
   await page.locator('[ng-click="confirmarpagamentoTroco()"]').click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
+
+  //Escolhe pela NF-e
+  await page.getByTestId("emitirNFeVenda").click();
+  await page.getByTestId("adicionaCPFNota").click();
 
   //Confirmar
   await page.waitForTimeout(1000);

@@ -8,6 +8,22 @@ export async function buscarCodigoDeBarras() {
   return result.recordset[0];
 }
 
+export async function updateEstoqueCodigoDeBarras(
+  PRODUTO: string,
+  COR_PRODUTO: string,
+  COD_FILIAL: string,
+) {
+  const pool = await getConnection();
+  const result = await pool
+    .request()
+    .input("PRODUTO", PRODUTO)
+    .input("COR_PRODUTO", COR_PRODUTO)
+    .input("COD_FILIAL", COD_FILIAL)
+    .query(
+      "update a set a.ESTOQUE = '1000',ES1 = '100',ES2 = '100',ES3 = '100',ES4 = '100',ES5 = '100',ES6 = '100',ES7 = '100',ES8 = '100',ES9 = '100',ES10 = '100' from ESTOQUE_PRODUTOS a join FILIAIS b on a.FILIAL = b.FILIAL where a.PRODUTO = @PRODUTO and a.COR_PRODUTO = @COR_PRODUTO and b.COD_FILIAL = @COD_FILIAL",
+    );
+}
+
 export async function buscarCadastroCliente() {
   const pool = await getConnection();
   const result = await pool
@@ -34,6 +50,16 @@ export async function permiteVendaSemCliente() {
     .request()
     .query(
       "select * from PARAMETROS where PARAMETRO = 'PermiteVendaSemCliente'",
+    );
+  return result.recordset[0];
+}
+
+export async function buscarTroca() {
+  const pool = await getConnection();
+  const result = await pool
+    .request()
+    .query(
+      "select top 1 a.TICKET from LOJA_VENDA a join LOJA_VENDA_TROCA b on a.TICKET = b.TICKET where a.DATA_HORA_CANCELAMENTO is null order by a.DATA_VENDA desc",
     );
   return result.recordset[0];
 }
