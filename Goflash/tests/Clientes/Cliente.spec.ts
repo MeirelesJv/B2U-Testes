@@ -31,6 +31,20 @@ test("Cadastro de cliente", async ({ page }) => {
   await page
     .getByRole("textbox", { name: "e-mail" })
     .fill(cadastroCliente.EMAIL);
+  await page.locator('input[name="telefoneDDD"]').fill(cadastroCliente.DDD);
+  await page
+    .locator('input[name="telefoneNumero"]')
+    .fill(cadastroCliente.TELEFONE);
+  await page.getByRole("textbox", { name: "Nascimento" }).fill("07/11/2000");
+
+  let select = page.locator('select[name="genero"]');
+  await select.selectOption({ index: 1 });
+
+  await page.getByRole("textbox", { name: "CEP" }).fill(cadastroCliente.CEP);
+  await page.getByRole("link", { name: "more", exact: true }).click();
+  await page.waitForTimeout(2000);
+
+  await page.locator('input[name="numero"]').fill(cadastroCliente.NUMERO);
 
   //Roda a query que deleta o cliente
   const deletaClienteCadastrado = await deletarCadastroCliente(
@@ -40,10 +54,24 @@ test("Cadastro de cliente", async ({ page }) => {
 
   //Salva
   await page.getByRole("button", { name: "Salvar", exact: true }).click();
-  await page.getByRole("checkbox").nth(1).click();
-  await page.getByRole("checkbox").nth(2).click();
-  await page.getByRole("link", { name: "Sim" }).click();
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(1000);
+
+  //Caso tenha o pop-up de fidelidade
+  const popupFidelidade = page.getByRole("heading", {
+    name: "Para salvar o cadastro do cliente é necessário confirmar os termos abaixo:",
+  });
+
+  if (await popupFidelidade.isVisible()) {
+    await page.getByRole("checkbox").nth(2).click();
+    await page.getByRole("checkbox").nth(3).click();
+    await page.getByRole("link", { name: "Sim" }).click();
+    await page.waitForTimeout(500);
+  } else {
+    await page.getByRole("checkbox").nth(1).click();
+    await page.getByRole("checkbox").nth(2).click();
+    await page.getByRole("link", { name: "Sim" }).click();
+    await page.waitForTimeout(500);
+  }
 
   let cpfJaCadastrado = await page
     .getByLabel("Já existe um cliente")

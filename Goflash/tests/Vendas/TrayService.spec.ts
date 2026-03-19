@@ -4,10 +4,14 @@ import {
   buscarCodigoDeBarras,
   permiteVendaSemCliente,
   updateEstoqueCodigoDeBarras,
+  buscarClienteVenda,
 } from "../../database/queries";
 import { closeConnection } from "../../database/connection";
 
 //Testes com emissão pelo Tray Service
+
+//Roda os testes em sequencia
+test.describe.configure({ mode: "serial" });
 
 let tempoEspera = 3000;
 
@@ -16,7 +20,7 @@ test.afterAll(async () => {
 });
 
 test("Teste de Venda", async ({ page }) => {
-  test.setTimeout(30000);
+  test.setTimeout(0);
 
   await page.goto("http://localhost:" + config.porta);
   await page.waitForLoadState("networkidle");
@@ -114,11 +118,22 @@ test("Teste de Venda", async ({ page }) => {
     const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
     if (await icone.isVisible()) {
     } else {
-      await page.locator("#cliente").fill(config.cliente);
-      await page.waitForTimeout(2000);
-      await page.waitForSelector('[role="option"]', { state: "visible" });
-      await page.locator('[role="option"] a').first().click();
-      await page.waitForTimeout(500);
+      if (!config.cliente) {
+        //Não tem cliente na config.ts
+        let clienteVenda = await buscarClienteVenda();
+        await page.locator("#cliente").fill(clienteVenda.CODIGO_CLIENTE);
+        await page.waitForTimeout(2000);
+        await page.waitForSelector('[role="option"]', { state: "visible" });
+        await page.locator('[role="option"] a').first().click();
+        await page.waitForTimeout(500);
+      } else {
+        //Tem cliente na config.ts
+        await page.locator("#cliente").fill(config.cliente);
+        await page.waitForTimeout(2000);
+        await page.waitForSelector('[role="option"]', { state: "visible" });
+        await page.locator('[role="option"] a').first().click();
+        await page.waitForTimeout(500);
+      }
     }
   }
 
@@ -162,6 +177,16 @@ test("Teste de Venda", async ({ page }) => {
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(tempoEspera);
 
+  //Caso automaticamenet vá para digite as parcelas
+  let pagamentoErrado = page.getByRole("link", {
+    name: "Iniciar processo de TEF",
+  });
+
+  if (await pagamentoErrado.isVisible()) {
+    await page.getByRole("link", { name: "arrow_back Voltar" }).click();
+    await page.waitForLoadState("networkidle");
+  }
+
   //Seleciona forma de pagamento
   await page.getByRole("radio", { name: "DINHEIRO" }).click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
@@ -172,6 +197,13 @@ test("Teste de Venda", async ({ page }) => {
   await page.locator('[ng-click="confirmarpagamentoTroco()"]').click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
   await page.waitForLoadState("networkidle");
+
+  //Tira o CPF da nota
+  const cpfFinalVenda = await page.getByRole("checkbox").isChecked();
+
+  if (cpfFinalVenda) {
+    await page.getByRole("checkbox").click();
+  }
 
   //Confirmar
   await page.waitForTimeout(1000);
@@ -184,7 +216,7 @@ test("Teste de Venda", async ({ page }) => {
 });
 
 test("Teste de Cancelamento", async ({ page }) => {
-  test.setTimeout(50000);
+  test.setTimeout(0);
 
   await page.goto("http://localhost:" + config.porta);
   await page.waitForLoadState("networkidle");
@@ -282,11 +314,22 @@ test("Teste de Cancelamento", async ({ page }) => {
     const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
     if (await icone.isVisible()) {
     } else {
-      await page.locator("#cliente").fill(config.cliente);
-      await page.waitForTimeout(2000);
-      await page.waitForSelector('[role="option"]', { state: "visible" });
-      await page.locator('[role="option"] a').first().click();
-      await page.waitForTimeout(500);
+      if (!config.cliente) {
+        //Não tem cliente na config.ts
+        let clienteVenda = await buscarClienteVenda();
+        await page.locator("#cliente").fill(clienteVenda.CODIGO_CLIENTE);
+        await page.waitForTimeout(2000);
+        await page.waitForSelector('[role="option"]', { state: "visible" });
+        await page.locator('[role="option"] a').first().click();
+        await page.waitForTimeout(500);
+      } else {
+        //Tem cliente na config.ts
+        await page.locator("#cliente").fill(config.cliente);
+        await page.waitForTimeout(2000);
+        await page.waitForSelector('[role="option"]', { state: "visible" });
+        await page.locator('[role="option"] a').first().click();
+        await page.waitForTimeout(500);
+      }
     }
   }
 
@@ -330,6 +373,16 @@ test("Teste de Cancelamento", async ({ page }) => {
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(tempoEspera);
 
+  //Caso automaticamenet vá para digite as parcelas
+  let pagamentoErrado = page.getByRole("link", {
+    name: "Iniciar processo de TEF",
+  });
+
+  if (await pagamentoErrado.isVisible()) {
+    await page.getByRole("link", { name: "arrow_back Voltar" }).click();
+    await page.waitForLoadState("networkidle");
+  }
+
   //Seleciona forma de pagamento
   await page.getByRole("radio", { name: "DINHEIRO" }).click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
@@ -338,6 +391,13 @@ test("Teste de Cancelamento", async ({ page }) => {
   //Confirmar pagamento
   await page.locator('[ng-click="confirmarpagamentoTroco()"]').click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
+
+  //Tira o CPF da nota
+  const cpfFinalVenda = await page.getByRole("checkbox").isChecked();
+
+  if (cpfFinalVenda) {
+    await page.getByRole("checkbox").click();
+  }
 
   //Confirmar
   await page.waitForTimeout(1000);
@@ -402,7 +462,7 @@ test("Teste de Cancelamento", async ({ page }) => {
 
 //Atualmene mesmo com o parametro, é necessario o uso do Tray Service para gerar a nota 55
 test("Teste de Troca", async ({ page }) => {
-  test.setTimeout(40000);
+  test.setTimeout(0);
 
   await page.goto("http://localhost:" + config.porta);
   await page.waitForLoadState("networkidle");
@@ -498,11 +558,22 @@ test("Teste de Troca", async ({ page }) => {
     const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
     if (await icone.isVisible()) {
     } else {
-      await page.locator("#cliente").fill(config.cliente);
-      await page.waitForTimeout(2000);
-      await page.waitForSelector('[role="option"]', { state: "visible" });
-      await page.locator('[role="option"] a').first().click();
-      await page.waitForTimeout(500);
+      if (!config.cliente) {
+        //Não tem cliente na config.ts
+        let clienteVenda = await buscarClienteVenda();
+        await page.locator("#cliente").fill(clienteVenda.CODIGO_CLIENTE);
+        await page.waitForTimeout(2000);
+        await page.waitForSelector('[role="option"]', { state: "visible" });
+        await page.locator('[role="option"] a').first().click();
+        await page.waitForTimeout(500);
+      } else {
+        //Tem cliente na config.ts
+        await page.locator("#cliente").fill(config.cliente);
+        await page.waitForTimeout(2000);
+        await page.waitForSelector('[role="option"]', { state: "visible" });
+        await page.locator('[role="option"] a').first().click();
+        await page.waitForTimeout(500);
+      }
     }
   }
 
@@ -559,6 +630,16 @@ test("Teste de Troca", async ({ page }) => {
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(tempoEspera);
 
+  //Caso automaticamenet vá para digite as parcelas
+  let pagamentoErrado = page.getByRole("link", {
+    name: "Iniciar processo de TEF",
+  });
+
+  if (await pagamentoErrado.isVisible()) {
+    await page.getByRole("link", { name: "arrow_back Voltar" }).click();
+    await page.waitForLoadState("networkidle");
+  }
+
   //Seleciona forma de pagamento
   await page.getByRole("radio", { name: "DINHEIRO" }).click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
@@ -567,6 +648,13 @@ test("Teste de Troca", async ({ page }) => {
   //Confirmar pagamento
   await page.locator('[ng-click="confirmarpagamentoTroco()"]').click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
+
+  //Tira o CPF da nota
+  const cpfFinalVenda = await page.getByRole("checkbox").isChecked();
+
+  if (cpfFinalVenda) {
+    await page.getByRole("checkbox").click();
+  }
 
   //Confirmar
   await page.waitForTimeout(1000);
@@ -579,7 +667,7 @@ test("Teste de Troca", async ({ page }) => {
 });
 
 test("Teste de Cancelamento Troca", async ({ page }) => {
-  test.setTimeout(60000);
+  test.setTimeout(0);
 
   await page.goto("http://localhost:" + config.porta);
   await page.waitForLoadState("networkidle");
@@ -675,11 +763,22 @@ test("Teste de Cancelamento Troca", async ({ page }) => {
     const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
     if (await icone.isVisible()) {
     } else {
-      await page.locator("#cliente").fill(config.cliente);
-      await page.waitForTimeout(2000);
-      await page.waitForSelector('[role="option"]', { state: "visible" });
-      await page.locator('[role="option"] a').first().click();
-      await page.waitForTimeout(500);
+      if (!config.cliente) {
+        //Não tem cliente na config.ts
+        let clienteVenda = await buscarClienteVenda();
+        await page.locator("#cliente").fill(clienteVenda.CODIGO_CLIENTE);
+        await page.waitForTimeout(2000);
+        await page.waitForSelector('[role="option"]', { state: "visible" });
+        await page.locator('[role="option"] a').first().click();
+        await page.waitForTimeout(500);
+      } else {
+        //Tem cliente na config.ts
+        await page.locator("#cliente").fill(config.cliente);
+        await page.waitForTimeout(2000);
+        await page.waitForSelector('[role="option"]', { state: "visible" });
+        await page.locator('[role="option"] a').first().click();
+        await page.waitForTimeout(500);
+      }
     }
   }
 
@@ -736,6 +835,16 @@ test("Teste de Cancelamento Troca", async ({ page }) => {
   await page.waitForLoadState("networkidle");
   await page.waitForTimeout(tempoEspera);
 
+  //Caso automaticamenet vá para digite as parcelas
+  let pagamentoErrado = page.getByRole("link", {
+    name: "Iniciar processo de TEF",
+  });
+
+  if (await pagamentoErrado.isVisible()) {
+    await page.getByRole("link", { name: "arrow_back Voltar" }).click();
+    await page.waitForLoadState("networkidle");
+  }
+
   //Seleciona forma de pagamento
   await page.getByRole("radio", { name: "DINHEIRO" }).click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
@@ -744,6 +853,13 @@ test("Teste de Cancelamento Troca", async ({ page }) => {
   //Confirmar pagamento
   await page.locator('[ng-click="confirmarpagamentoTroco()"]').click();
   await page.locator('[ng-click="gotoNextPagamento()"]').nth(1).click();
+
+  //Tira o CPF da nota
+  const cpfFinalVenda = await page.getByRole("checkbox").isChecked();
+
+  if (cpfFinalVenda) {
+    await page.getByRole("checkbox").click();
+  }
 
   //Confirmar
   await page.waitForTimeout(1000);

@@ -29,7 +29,7 @@ export async function buscarCadastroCliente() {
   const result = await pool
     .request()
     .query(
-      "SELECT TOP 1 a.* FROM CLIENTES_VAREJO a LEFT JOIN LOJA_VENDA b ON a.CODIGO_CLIENTE = b.CODIGO_CLIENTE WHERE b.CODIGO_CLIENTE IS NULL and LEN(REPLACE(CPF_CGC, ' ', '')) = 11 and REPLACE(a.CPF_CGC,' ','') <> '00000000000' and EMAIL is not null",
+      "SELECT TOP 1 a.CODIGO_CLIENTE,a.EMAIL,a.DDD,a.NUMERO,a.CEP,a.CPF_CGC,a.ANIVERSARIO,a.CLIENTE_VAREJO,a.TELEFONE FROM CLIENTES_VAREJO a WHERE NOT EXISTS (SELECT 1 FROM LOJA_VENDA b WHERE b.CODIGO_CLIENTE = a.CODIGO_CLIENTE) AND a.CPF_CGC IS NOT NULL AND LEN(a.CPF_CGC) = 11 AND a.CPF_CGC <> '00000000000' AND a.EMAIL IS NOT NULL AND a.EMAIL <> '' AND a.DDD IS NOT NULL AND a.DDD <> '' AND a.ANIVERSARIO IS NOT NULL AND a.CEP IS NOT NULL AND a.CEP <> '' AND a.NUMERO IS NOT NULL AND a.TELEFONE IS NOT NULL;",
     );
   return result.recordset[0];
 }
@@ -60,6 +60,16 @@ export async function buscarTroca() {
     .request()
     .query(
       "select top 1 a.TICKET from LOJA_VENDA a join LOJA_VENDA_TROCA b on a.TICKET = b.TICKET where a.DATA_HORA_CANCELAMENTO is null order by a.DATA_VENDA desc",
+    );
+  return result.recordset[0];
+}
+
+export async function buscarClienteVenda() {
+  const pool = await getConnection();
+  const result = await pool
+    .request()
+    .query(
+      "select top 1 CODIGO_CLIENTE from LOJA_VENDA order by DATA_VENDA desc",
     );
   return result.recordset[0];
 }
