@@ -1,5 +1,6 @@
 import { chromium } from "@playwright/test";
 import { config } from "./config";
+import { buscarTipoAmbiente } from "./database/queries";
 import fs from "fs";
 
 async function globalSetup() {
@@ -10,6 +11,12 @@ async function globalSetup() {
 
   await page.goto("http://localhost:" + config.porta);
   await page.waitForLoadState("networkidle");
+
+  //Verifica se está em Homolog
+  let verificaAmbiente = await buscarTipoAmbiente();
+  if (verificaAmbiente.VALOR_ATUAL != "2") {
+    throw new Error("Ambiente não configurado para Homolog");
+  }
 
   await page.getByPlaceholder("Usuário").fill(config.usuarioGoflash);
   await page.getByPlaceholder("senha").fill(config.senhaGoflash);

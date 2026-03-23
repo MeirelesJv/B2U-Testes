@@ -73,3 +73,13 @@ export async function buscarClienteVenda() {
     );
   return result.recordset[0];
 }
+
+export async function buscarTipoAmbiente() {
+  const pool = await getConnection();
+  const result = await pool
+    .request()
+    .query(
+      "select VALOR_ATUAL from PARAMETROS where PARAMETRO = 'Migrate.TipoAmbiente'",
+    );
+  return result.recordset[0];
+}

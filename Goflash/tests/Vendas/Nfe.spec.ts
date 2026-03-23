@@ -126,34 +126,26 @@ test("Emissão de uma venda NF-e", async ({ page }) => {
   let select = page.locator("select#vendedor");
   await select.selectOption({ index: 1 }); // seleciona o primeiro
 
-  //Verifica se o parametro que permite venda sem cliente está ativo, se estiver ele mantem e faz a venda sem cliente
-  let vendaSemCliente = await permiteVendaSemCliente();
-  if (vendaSemCliente.VALOR_ATUAL === ".T.") {
-    //Parametro ativo
-    await page.waitForTimeout(500);
+  //Verifica se o campo de cliente está preenchido
+  await page.waitForTimeout(2000);
+  const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
+  if (await icone.isVisible()) {
   } else {
-    //Parametro desativado
-    //Verifica se o campo de cliente está preenchido
-    await page.waitForTimeout(2000);
-    const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
-    if (await icone.isVisible()) {
+    if (!config.cliente) {
+      //Não tem cliente na config.ts
+      let clienteVenda = await buscarClienteVenda();
+      await page.locator("#cliente").fill(clienteVenda.CODIGO_CLIENTE);
+      await page.waitForTimeout(2000);
+      await page.waitForSelector('[role="option"]', { state: "visible" });
+      await page.locator('[role="option"] a').first().click();
+      await page.waitForTimeout(500);
     } else {
-      if (!config.cliente) {
-        //Não tem cliente na config.ts
-        let clienteVenda = await buscarClienteVenda();
-        await page.locator("#cliente").fill(clienteVenda.CODIGO_CLIENTE);
-        await page.waitForTimeout(2000);
-        await page.waitForSelector('[role="option"]', { state: "visible" });
-        await page.locator('[role="option"] a').first().click();
-        await page.waitForTimeout(500);
-      } else {
-        //Tem cliente na config.ts
-        await page.locator("#cliente").fill(config.cliente);
-        await page.waitForTimeout(2000);
-        await page.waitForSelector('[role="option"]', { state: "visible" });
-        await page.locator('[role="option"] a').first().click();
-        await page.waitForTimeout(500);
-      }
+      //Tem cliente na config.ts
+      await page.locator("#cliente").fill(config.cliente);
+      await page.waitForTimeout(2000);
+      await page.waitForSelector('[role="option"]', { state: "visible" });
+      await page.locator('[role="option"] a').first().click();
+      await page.waitForTimeout(500);
     }
   }
 
@@ -340,34 +332,26 @@ test("Teste de Cancelamento NF-e", async ({ page }) => {
   let select = page.locator("select#vendedor");
   await select.selectOption({ index: 1 }); // seleciona o primeiro
 
-  //Verifica se o parametro que permite venda sem cliente está ativo, se estiver ele mantem e faz a venda sem cliente
-  let vendaSemCliente = await permiteVendaSemCliente();
-  if (vendaSemCliente.VALOR_ATUAL === ".T.") {
-    //Parametro ativo
-    await page.waitForTimeout(500);
+  //Verifica se o campo de cliente está preenchido
+  await page.waitForTimeout(2000);
+  const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
+  if (await icone.isVisible()) {
   } else {
-    //Parametro desativado
-    //Verifica se o campo de cliente está preenchido
-    await page.waitForTimeout(2000);
-    const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
-    if (await icone.isVisible()) {
+    if (!config.cliente) {
+      //Não tem cliente na config.ts
+      let clienteVenda = await buscarClienteVenda();
+      await page.locator("#cliente").fill(clienteVenda.CODIGO_CLIENTE);
+      await page.waitForTimeout(2000);
+      await page.waitForSelector('[role="option"]', { state: "visible" });
+      await page.locator('[role="option"] a').first().click();
+      await page.waitForTimeout(500);
     } else {
-      if (!config.cliente) {
-        //Não tem cliente na config.ts
-        let clienteVenda = await buscarClienteVenda();
-        await page.locator("#cliente").fill(clienteVenda.CODIGO_CLIENTE);
-        await page.waitForTimeout(2000);
-        await page.waitForSelector('[role="option"]', { state: "visible" });
-        await page.locator('[role="option"] a').first().click();
-        await page.waitForTimeout(500);
-      } else {
-        //Tem cliente na config.ts
-        await page.locator("#cliente").fill(config.cliente);
-        await page.waitForTimeout(2000);
-        await page.waitForSelector('[role="option"]', { state: "visible" });
-        await page.locator('[role="option"] a').first().click();
-        await page.waitForTimeout(500);
-      }
+      //Tem cliente na config.ts
+      await page.locator("#cliente").fill(config.cliente);
+      await page.waitForTimeout(2000);
+      await page.waitForSelector('[role="option"]', { state: "visible" });
+      await page.locator('[role="option"] a').first().click();
+      await page.waitForTimeout(500);
     }
   }
 
@@ -592,34 +576,26 @@ test("Teste de Troca NF-e", async ({ page }) => {
   let select = page.locator("select#vendedor");
   await select.selectOption({ index: 1 }); // seleciona o primeiro
 
-  //Verifica se o parametro que permite venda sem cliente está ativo, se estiver ele mantem e faz a venda sem cliente
-  let vendaSemCliente = await permiteVendaSemCliente();
-  if (vendaSemCliente.VALOR_ATUAL === ".T.") {
-    //Parametro ativo
-    await page.waitForTimeout(500);
+  //Verifica se o campo de cliente está preenchido
+  await page.waitForTimeout(2000);
+  const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
+  if (await icone.isVisible()) {
   } else {
-    //Parametro desativado
-    //Verifica se o campo de cliente está preenchido
-    await page.waitForTimeout(2000);
-    const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
-    if (await icone.isVisible()) {
+    if (!config.cliente) {
+      //Não tem cliente na config.ts
+      let clienteVenda = await buscarClienteVenda();
+      await page.locator("#cliente").fill(clienteVenda.CODIGO_CLIENTE);
+      await page.waitForTimeout(2000);
+      await page.waitForSelector('[role="option"]', { state: "visible" });
+      await page.locator('[role="option"] a').first().click();
+      await page.waitForTimeout(500);
     } else {
-      if (!config.cliente) {
-        //Não tem cliente na config.ts
-        let clienteVenda = await buscarClienteVenda();
-        await page.locator("#cliente").fill(clienteVenda.CODIGO_CLIENTE);
-        await page.waitForTimeout(2000);
-        await page.waitForSelector('[role="option"]', { state: "visible" });
-        await page.locator('[role="option"] a').first().click();
-        await page.waitForTimeout(500);
-      } else {
-        //Tem cliente na config.ts
-        await page.locator("#cliente").fill(config.cliente);
-        await page.waitForTimeout(2000);
-        await page.waitForSelector('[role="option"]', { state: "visible" });
-        await page.locator('[role="option"] a').first().click();
-        await page.waitForTimeout(500);
-      }
+      //Tem cliente na config.ts
+      await page.locator("#cliente").fill(config.cliente);
+      await page.waitForTimeout(2000);
+      await page.waitForSelector('[role="option"]', { state: "visible" });
+      await page.locator('[role="option"] a').first().click();
+      await page.waitForTimeout(500);
     }
   }
 
@@ -805,34 +781,26 @@ test("Teste de Cancelamento Troca NF-e", async ({ page }) => {
   let select = page.locator("select#vendedor");
   await select.selectOption({ index: 1 }); // seleciona o primeiro
 
-  //Verifica se o parametro que permite venda sem cliente está ativo, se estiver ele mantem e faz a venda sem cliente
-  let vendaSemCliente = await permiteVendaSemCliente();
-  if (vendaSemCliente.VALOR_ATUAL === ".T.") {
-    //Parametro ativo
-    await page.waitForTimeout(500);
+  //Verifica se o campo de cliente está preenchido
+  await page.waitForTimeout(2000);
+  const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
+  if (await icone.isVisible()) {
   } else {
-    //Parametro desativado
-    //Verifica se o campo de cliente está preenchido
-    await page.waitForTimeout(2000);
-    const icone = page.locator('i.material-icons[ng-click="limparCliente()"]');
-    if (await icone.isVisible()) {
+    if (!config.cliente) {
+      //Não tem cliente na config.ts
+      let clienteVenda = await buscarClienteVenda();
+      await page.locator("#cliente").fill(clienteVenda.CODIGO_CLIENTE);
+      await page.waitForTimeout(2000);
+      await page.waitForSelector('[role="option"]', { state: "visible" });
+      await page.locator('[role="option"] a').first().click();
+      await page.waitForTimeout(500);
     } else {
-      if (!config.cliente) {
-        //Não tem cliente na config.ts
-        let clienteVenda = await buscarClienteVenda();
-        await page.locator("#cliente").fill(clienteVenda.CODIGO_CLIENTE);
-        await page.waitForTimeout(2000);
-        await page.waitForSelector('[role="option"]', { state: "visible" });
-        await page.locator('[role="option"] a').first().click();
-        await page.waitForTimeout(500);
-      } else {
-        //Tem cliente na config.ts
-        await page.locator("#cliente").fill(config.cliente);
-        await page.waitForTimeout(2000);
-        await page.waitForSelector('[role="option"]', { state: "visible" });
-        await page.locator('[role="option"] a').first().click();
-        await page.waitForTimeout(500);
-      }
+      //Tem cliente na config.ts
+      await page.locator("#cliente").fill(config.cliente);
+      await page.waitForTimeout(2000);
+      await page.waitForSelector('[role="option"]', { state: "visible" });
+      await page.locator('[role="option"] a').first().click();
+      await page.waitForTimeout(500);
     }
   }
 
