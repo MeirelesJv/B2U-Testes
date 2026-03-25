@@ -4,7 +4,7 @@ export async function buscarCodigoDeBarras() {
   const pool = await getConnection();
   const result = await pool
     .request()
-    .query("select * from LOJA_VENDA_PRODUTO order by DATA_VENDA desc");
+    .query("select top 1 * from LOJA_VENDA_PRODUTO order by DATA_VENDA desc");
   return result.recordset[0];
 }
 
@@ -80,6 +80,16 @@ export async function buscarTipoAmbiente() {
     .request()
     .query(
       "select VALOR_ATUAL from PARAMETROS where PARAMETRO = 'Migrate.TipoAmbiente'",
+    );
+  return result.recordset[0];
+}
+
+export async function buscarDestinoConsumivel() {
+  const pool = await getConnection();
+  const result = await pool
+    .request()
+    .query(
+      "select top 1 a.FILIAL from FILIAIS a join LOJA_SAIDAS b on a.FILIAL = b.FILIAL_DESTINO where b.FILIAL_DESTINO is not null order by b.EMISSAO desc",
     );
   return result.recordset[0];
 }
